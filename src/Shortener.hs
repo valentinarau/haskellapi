@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Shortener (shortener, printTime, printConfig, printNumbers, printJson) where
+module Shortener (shortener, printTime, printConfig, printJson) where
 
 import Web.Scotty
 import Data.Time (getCurrentTime)
@@ -12,10 +12,6 @@ shortener =
     scotty 3000 $
         get "/" $
         html "<h1>Welcome</h1>"
-
-printNumbers :: IO ()
-printNumbers = do
-  print (3+4)
 
 printConfig :: IO ()
 printConfig = do

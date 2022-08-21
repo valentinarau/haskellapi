@@ -1,9 +1,8 @@
 module Main (main) where
 
--- import Lib
-import Shortener
-
+-- import Shortener
+import Lib(mainapp)
 
 main :: IO ()
 --main = someFunc
-main = shortener
+main = mainapp
