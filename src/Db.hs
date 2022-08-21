@@ -1,12 +1,14 @@
 -- Db.hs
 module Db
-  ( DbUsr (..),
-    getUserStore,
-    insertUser,
-    deleteUser,
-    getUsers,
+  ( DbTodo (..),
+    getTodoStore,
+    insertTodo,
+    deleteTodo,
+    editTodo,
+    getTodos,
+    finishTodo,
     mkDb,
-    UserStore (..),
+    TodoStore (..),
   )
 where
 
@@ -17,19 +19,21 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Text (Text)
 
-data DbUsr = DbUsr
-  { dbUsrName :: Text,
-    dbUsrPassword :: Text
+data DbTodo = DbTodo
+  { 
+    dbTodoName :: Text,
+    dbTodoDescription :: Text,
+    dbTodoDone :: Bool
   }
   deriving (Show)
 
-newtype UserStore = UserStore {unUsrStore :: IORef (Map Int DbUsr)}
+newtype TodoStore = TodoStore {unTodoStore :: IORef (Map Int DbTodo)}
 
 -- Creates our initial empty database
-mkDb :: IO UserStore
+mkDb :: IO TodoStore
 mkDb = do
-  ref <- newIORef (Map.empty :: Map Int DbUsr)
-  pure $ UserStore ref
+  ref <- newIORef (Map.empty :: Map Int DbTodo)
+  pure $ TodoStore ref
 
 -- Accepts a default value to return in case the list is empty
 safeLast :: a -> [a] -> a
@@ -37,24 +41,31 @@ safeLast x [] = x
 safeLast _ (x : xs) = safeLast x xs
 
 -- Utility to allow us to read the data in our "database"
-getUserStore :: UserStore -> IO (Map Int DbUsr)
-getUserStore (UserStore store) = readIORef store
+getTodoStore :: TodoStore -> IO (Map Int DbTodo)
+getTodoStore (TodoStore store) = readIORef store
 
 -- VERY naive utility to get the next unique user ID
-getNextId :: UserStore -> IO Int
-getNextId x = (+ 1) . safeLast 0 . sort . Map.keys <$> getUserStore x
+getNextId :: TodoStore -> IO Int
+getNextId x = (+ 1) . safeLast 0 . sort . Map.keys <$> getTodoStore x
 
-getUsers :: UserStore -> IO [DbUsr]
-getUsers userStore = do
- Map.elems <$> getUserStore userStore
+getTodos :: TodoStore -> IO [DbTodo]
+getTodos todoStore = do
+ Map.elems <$> getTodoStore todoStore
 -- insertUser uses getNextId to get the next ID and then updates our database using
 -- modifyIORef from the Data.IORef library. It returns the new ID as a result.
-insertUser :: UserStore -> DbUsr -> IO Int
-insertUser userStore usr = do
-  nextId <- getNextId userStore
-  modifyIORef (unUsrStore userStore) (Map.insert nextId usr)
+insertTodo :: TodoStore -> DbTodo -> IO Int
+insertTodo todoStore td = do
+  nextId <- getNextId todoStore
+  modifyIORef (unTodoStore todoStore) (Map.insert nextId td)
   pure nextId
 
 -- deleteUser updates our database by deleting the relevant user data 
-deleteUser :: UserStore -> Int -> IO ()
-deleteUser usrStore uid = modifyIORef' (unUsrStore usrStore) (Map.delete uid)
+deleteTodo :: TodoStore -> Int -> IO ()
+deleteTodo usrStore uid = modifyIORef' (unTodoStore usrStore) (Map.delete uid)
+
+editTodo :: TodoStore -> Int -> (Text, Text) -> IO ()
+editTodo todoStore uid (newName, newDesc) = 
+    modifyIORef' (unTodoStore todoStore) (Map.adjust (\todo -> todo {dbTodoName = newName, dbTodoDescription = newDesc}) uid)
+
+finishTodo :: TodoStore -> Int -> IO ()
+finishTodo todoStore uid = modifyIORef' (unTodoStore todoStore) (Map.adjust (\todo -> todo {dbTodoDone = not $ dbTodoDone todo}) uid)

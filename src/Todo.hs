@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
-module User where
+module Todo where
 
 import Data.Aeson
 import Data.Text
@@ -12,23 +12,24 @@ import GHC.Generics
 --     userName :: Text
 --   }
 
-data UserDto = UserDto
+data Todo = Todo
     {
-        someNum :: Int,
-        someName :: Text,
-        somePass :: Text
+        todoTask :: Text,
+        todoDescription :: Text,
+        todoDone :: Bool
     }
     deriving (Generic)
 -- Data type which describes the request which
 -- will be received to create a user
-data CreateUserRequest = CreateUserRequest
-  { name :: Text,
-    password :: Text
+data CreateUpdateTodoRequest = CreateUpdateTodoRequest
+  { 
+    reqTodoName :: Text,
+    reqTodoDescription :: Text
   }
   deriving (Generic)
 
 -- We define a FromJSON instance for CreateUserRequest
 -- because we will want to parse it from a HTTP request
 -- body (JSON).
-instance FromJSON CreateUserRequest
-instance ToJSON UserDto
+instance FromJSON CreateUpdateTodoRequest
+instance ToJSON Todo

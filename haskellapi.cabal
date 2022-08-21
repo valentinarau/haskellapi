@@ -28,7 +28,7 @@ library
       Db
       Lib
       Shortener
-      User
+      Todo
   other-modules:
       Paths_haskellapi
   hs-source-dirs:
